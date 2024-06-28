@@ -1,15 +1,20 @@
 from rest_framework import viewsets
-from .serializer import ServerSerializer
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError, AuthenticationFailed
 from django.db.models import Count
+from.schema import server_list_docs
 from .models import Server
+from .serializer import ServerSerializer
 
 class ServerListViewSet(viewsets.ViewSet):
     # Define the base queryset to retrieve all Server objects
     queryset = Server.objects.all()
     
+    @server_list_docs
     def list(self, request):
+        """
+        Hello Description Test Man
+        """
         # Retrieve query parameters from the request
         category = request.query_params.get('category')
         by_user = request.query_params.get('by_user') == 'true'
