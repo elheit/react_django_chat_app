@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework import viewsets
 from .serializer import ServerSerializer
 from rest_framework.response import Response
@@ -7,40 +6,51 @@ from django.db.models import Count
 from .models import Server
 
 class ServerListViewSet(viewsets.ViewSet):
+    # Define the base queryset to retrieve all Server objects
     queryset = Server.objects.all()
     
     def list(self, request):
+        # Retrieve query parameters from the request
         category = request.query_params.get('category')
         by_user = request.query_params.get('by_user') == 'true'
         qty = request.query_params.get('qty')
         server_id = request.query_params.get('server_id')
         with_num_members = request.query_params.get('with_num_members') == 'true'
 
-        if by_user or server_id and not request.user.is_authenticated:
+        # Check authentication for certain operations
+        if (by_user or server_id) and not request.user.is_authenticated:
             raise AuthenticationFailed()
         
+        # Filter the queryset based on the category parameter
         if category:
             self.queryset = self.queryset.filter(category__name=category)
 
+        # Filter the queryset to include only servers the current user is a member of
         if by_user:
             user_id = request.user.id
             self.queryset = self.queryset.filter(members=user_id)
         
+        # Annotate the queryset to include the number of members in each server
         if with_num_members:
-            self.queryset = self.queryset.annotate(num_members=Count('members') )
+            self.queryset = self.queryset.annotate(num_members=Count('members'))
 
-
+        # Limit the number of servers in the queryset based on the qty parameter
         if qty:
-            self.queryset = self.queryset[: int(qty)]
+            self.queryset = self.queryset[:int(qty)]
 
+        # Filter the queryset based on the server_id parameter
         if server_id:
             try:
                 self.queryset = self.queryset.filter(id=server_id)
                 if not self.queryset.exists():
-                    raise ValidationError(detail=f"Server with id {server_id} Not Fuound")
+                    # Raise an error if the server with the given ID does not exist
+                    raise ValidationError(detail=f"Server with id {server_id} Not Found")
             except ValueError:
-                raise ValueError(detail=f"An Error is Accure")
+                # Raise a value error if the server_id parameter is not valid
+                raise ValueError(detail=f"An Error has Occurred")
         
-
+        # Serialize the queryset
         serializer = ServerSerializer(self.queryset, many=True, context={'num_members': with_num_members})
+        
+        # Return the serialized data in the response
         return Response(serializer.data)
