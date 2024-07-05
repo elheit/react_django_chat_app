@@ -13,6 +13,7 @@ class ServerSerializer(serializers.ModelSerializer):
     num_members = serializers.SerializerMethodField()
     # Nested serializer for channels related to the server, using the related_name 'channel_server'
     channel_server = ChannelSerializer(many=True)
+    category = serializers.StringRelatedField()
 
     class Meta:
         model = Server
