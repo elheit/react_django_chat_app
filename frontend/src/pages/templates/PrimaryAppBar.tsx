@@ -1,4 +1,3 @@
-import { useTheme } from "@emotion/react";
 import {
   AppBar,
   Box,
@@ -9,26 +8,36 @@ import {
   Typography,
   useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import MenuIcon from "@mui/icons-material/Menu";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import ExploreCategories from "../../components/SecondaryDraw/ExploreCategories";
+import AccountButton from "../../components/PrimaryAppBar/AccountButton";
 
 const PrimaryAppBar = () => {
   const [sideMenu, setSideMenu] = useState(false);
   const theme = useTheme();
+
   const isSmallScreen = useMediaQuery(theme.breakpoints.up("sm"));
 
   useEffect(() => {
-    if (isSmallScreen && sideMenu) setSideMenu(false);
+    if (isSmallScreen && sideMenu) {
+      setSideMenu(false);
+    }
   }, [isSmallScreen]);
 
-  const toggleDrawer = (open: boolean) => {
-    return (event: React.MouseEvent) => {
-      event.preventDefault();
+  const toggleDrawer =
+    (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
+      if (
+        event.type === "keydown" &&
+        ((event as React.KeyboardEvent).key === "Tab" ||
+          (event as React.KeyboardEvent).key === "Shift")
+      ) {
+        return;
+      }
       setSideMenu(open);
-      console.log("====> hello", sideMenu);
     };
-  };
+
   const list = () => (
     <Box
       sx={{ paddingTop: `${theme.primaryAppBar.height}px`, minWidth: 200 }}
@@ -54,41 +63,36 @@ const PrimaryAppBar = () => {
           minHeight: theme.primaryAppBar.height,
         }}
       >
-        <Box
-          sx={{
-            display: { xs: "block", sm: "none" },
-          }}
-        >
+        <Box sx={{ display: { xs: "block", sm: "none" } }}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
             edge="start"
-            sx={{ mr: 2 }}
             onClick={toggleDrawer(true)}
+            sx={{ mr: 2 }}
           >
             <MenuIcon />
           </IconButton>
         </Box>
-        {/* open={sideMenu} onClose={() => toggleDrawer(false)} */}
+
         <Drawer anchor="left" open={sideMenu} onClose={toggleDrawer(false)}>
           {list()}
         </Drawer>
 
         <Link href="/" underline="none" color="inherit">
           <Typography
-            varient="h6"
+            variant="h6"
             noWrap
             component="div"
-            sx={{
-              display: { fontWeight: 700, letterSpacing: "-0.5px" },
-            }}
+            sx={{ display: { fontWeight: 700, letterSpacing: "-0.5px" } }}
           >
             Home
           </Typography>
         </Link>
+        <Box sx={{ flexGrow: 1 }}></Box>
+        <AccountButton />
       </Toolbar>
     </AppBar>
   );
 };
-
 export default PrimaryAppBar;
